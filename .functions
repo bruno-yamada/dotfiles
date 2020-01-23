@@ -17,3 +17,7 @@ docker-it() {
 open() {
     gio open $@
 }
+
+random_password() {
+    strings /dev/urandom | grep -o '[[:alnum:]]' | head -n $1 | tr -d '\n'; echo
+}
