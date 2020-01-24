@@ -21,3 +21,8 @@ open() {
 random_password() {
     strings /dev/urandom | grep -o '[[:alnum:]]' | head -n $1 | tr -d '\n'; echo
 }
+
+openssl_describe() {
+    openssl x509 -in $1 -text
+}
+
