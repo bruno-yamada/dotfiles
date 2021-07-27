@@ -1,6 +1,4 @@
-################################################################################
 # Docker
-################################################################################
 
 docker-logs() {
     docker logs -f --tail=200 $@
@@ -10,13 +8,10 @@ docker-it() {
     docker exec -it -e COLUMNS="`tput cols`" $@
 }
 
-################################################################################
-# Misc
-################################################################################
-
-open() {
-    gio open $@
-}
+# Misc only on ubuntu desktop
+#open() {
+#    gio open $@
+#}
 
 random_password() {
     strings /dev/urandom | grep -o '[[:alnum:]]' | head -n $1 | tr -d '\n'; echo
@@ -24,5 +19,57 @@ random_password() {
 
 openssl_describe() {
     openssl x509 -in $1 -text
+}
+
+tmpfile() {
+  N=/tmp/tmpfile-$(openssl rand -hex 4)
+  touch $N
+  echo $N
+}
+
+tmpdir() {
+  N=/tmp/tmpdir-$(openssl rand -hex 4)
+  mkdir $N
+  echo $N
+}
+
+gc() {
+  msg="$@"
+  if [ -z "$msg" ]; then
+    git commit -v
+  else
+    git commit -m "$msg"
+  fi
+}
+
+y() {
+	url="https://www.google.com/search?q="
+	for term in "$@"
+	do
+		url=$url"+"$term
+	done
+	lynx -cookies -accept_all_cookies -vikeys $url
+
+}
+
+function _date() {
+  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+export -f _date
+
+# Tmux requires tmux
+lasturls() { # TODO move to dotfiles scripts
+  tmux capture-pane -p | grep -Eo 'https?://[^ >]+'
+}
+lasturl() { # TODO move to dotfiles scripts
+  lasturls | perl -e 'print reverse <>' | head -n 1
+}
+openlast() {
+  url=$(lasturl)
+  if [ -z "${url}" ]; then
+    echo "no url found"
+  else
+    open $url
+  fi
 }
 

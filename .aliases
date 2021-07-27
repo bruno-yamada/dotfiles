@@ -1,3 +1,5 @@
+# .bashrc
+
 # Git
 alias gitlog='git log --graph --oneline'
 
@@ -5,9 +7,30 @@ alias gitlog='git log --graph --oneline'
 alias docker-rmi='docker rmi $(docker images --filter "dangling=true" -q --no-trunc)'
 
 # Misc
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
+alias ll="ls -lahF"
+alias llg="ls -la | grep"
+
+alias Projects="cd ~/projects && ll"
+alias Notes="cd ~/projects/github.com/bruno-yamada/bruno-yamada && ll"
+alias NotesPrivate="cd ~/projects/github.com/bruno-yamada/private-notes && ll"
+
 # Add an "alert" alias for long running commands. Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+alias t="terraform"
+
+# GIT
+alias ga="git add"
+alias gf="git fetch"
+alias gl="git pull"
+alias glg="git log --stat"
+alias gp="git push"
+alias gst="git status"
+alias gsw="git switch"
+
+# GIT CLI
+alias ghi="gh issue"
+alias ghic="gh issue create"
+alias ghil="gh issue list"
+alias ghiv="gh issue view"

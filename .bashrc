@@ -1,24 +1,65 @@
 # Add `~/bin` to the `$PATH`
-export PATH="$HOME/bin:$PATH";
 
 # If not running interactively, don't do anything
 case $- in
-    *i*) ;;
+    *i*) ;; # interactive
       *) return;;
 esac
+
+export GITUSER="bruno-yamada"
+export DOTFILES="$HOME/projects/github.com/bruno-yamada/dotfiles"
+export SCRIPTS="$DOTFILES/scripts"
+
+export EDITOR="vim"
+export LANG=en_US.UTF-8
+export LC_ALL="en_US.UTF-8"
+
+################################################################################
+# PATH
+################################################################################
+pathappend() {
+  declare arg
+  for arg in "$@"; do
+    test -d "${arg}" || continue
+    PATH=${PATH//:${arg}:/:}
+    PATH=${PATH/#${arg}:/}
+    PATH=${PATH/%:${arg}/}
+    export PATH="${PATH:+"${PATH}:"}${arg}"
+  done
+}
+
+pathprepend() {
+  for ARG in "$@"; do
+    test -d "${ARG}" || continue
+    PATH=${PATH//:${ARG}:/:}
+    PATH=${PATH/#${ARG}:/}
+    PATH=${PATH/%:${ARG}/}
+    export PATH="${ARG}${PATH:+":${PATH}"}"
+  done
+}
+
+# remember last arg will be first in path
+pathprepend \
+  $SCRIPTS
+
+pathappend \
+  $HOME/bin \
+  /usr/local/bin \
+  /usr/local/sbin \
+  /usr/local/go/bin
 
 ################################################################################
 # Load dotfiles
 ################################################################################
 # * ~/.path can be used to extend `$PATH`.
 # * ~/.private can be used for other settings you don’t want to commit.
-for file in ~/dotfiles/.{path,bash_prompt,exports,aliases,functions,private}; do
+for file in $DOTFILES/.{path,bash_prompt,exports,aliases,functions,private}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file";
 done;
 unset file;
 
 ################################################################################
-# shopt
+# shopt - shell options
 ################################################################################
 # Case-insensitive globbing (used in pathname expansion)
 shopt -s nocaseglob;
@@ -30,21 +71,23 @@ shopt -s histappend
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# expand aliases on shell scripts (not on POSIX, but bash-specific feature)
+shopt -s expand_aliases
+
 ################################################################################
 # History
 ################################################################################
+export HISTFILE="$HOME/.history"
 # don't put duplicate lines or lines starting with space in the history.
-HISTCONTROL=ignoreboth
+export HISTCONTROL=ignoreboth
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=50000
-HISTFILESIZE=100000
+export HISTSIZE=1000000
+export HISTFILESIZE=$HISTSIZE
+export SAVEHIST=$HISTSIZE
 
 ################################################################################
 # Misc
 ################################################################################
-
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -73,41 +116,41 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+  # maybe try to improve the performance by making less calls to git
+  BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+  if [ -n "$BRANCH" ]; then
+    HAS_CHANGES=$(git ls-files -o 2> /dev/null)
+    IS_BEHIND=$(git status 2> /dev/null | grep 'Your branch.*behind')
+    IS_AHEAD=$(git status 2> /dev/null | grep 'Your branch.*ahead')
+    if [ -n "$HAS_CHANGES" ]; then
+      BRANCH="$BRANCH*"
+    fi
+    if [ -n "$IS_BEHIND" ]; then
+      BRANCH="$BRANCH↓"
+    fi
+    if [ -n "$IS_AHEAD" ]; then
+      BRANCH="$BRANCH↑"
+    fi
+    BRANCH="($BRANCH)"
+  fi
+  echo $BRANCH
 }
 
 if [ "$color_prompt" = yes ]; then
     # PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(git_branch)\$ '
-    PS1='\[\033[01;34m\]\W\[\033[00m\]$(git_branch)\$ '
+    PS1='\[\033[01;34m\]\w\[\033[00m\]$(git_branch)\$ '
 else
     # PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
     PS1='\W\$ '
 fi
 unset color_prompt force_color_prompt
 
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
-
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
     alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
 fi
-
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -119,3 +162,14 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+########
+# FZF customizations, affects Ctrl+T, Ctrl+R, vim Ctrl+P, etc
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# replace default fzf command
+export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -f -g ""'
+
+# replace default Ctrl-T command from fzf keybindings (faster)
+export FZF_CTRL_T_COMMAND=$FZF_DEFAULT_COMMAND
+

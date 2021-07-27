@@ -1,0 +1,3 @@
+# List all issues for a user|org
+# gh api -X GET search/issues -f q='user:bruno-yamada is:open' | jq -r .items
+gh api -X GET search/issues -f q='user:bruno-yamada is:open'

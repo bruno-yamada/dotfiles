@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+import sys
+import os.path
+from datetime import datetime
+
+chunks = sys.argv[1:]
+
+prefix = datetime.now().strftime('%Y%m%d%H%M')
+
+file_name = '{}-{}.md'.format(prefix, '_'.join(chunks))
+
+if not len(chunks):
+    raise RuntimeError('Missing file append info')
+if os.path.isfile(file_name):
+    raise RuntimeError('File already exists: {}'.format(file_name))
+
+with open(file_name, 'w') as f:
+    title = '# ' + ' '.join(chunks) + '\n'
+    f.write(title)
