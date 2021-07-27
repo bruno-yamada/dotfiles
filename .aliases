@@ -1,5 +1,8 @@
 # .bashrc
 
+alias dotfiles='cd $DOTFILES'
+alias scripts='cd $SCRIPTS'
+
 # Git
 alias gitlog='git log --graph --oneline'
 

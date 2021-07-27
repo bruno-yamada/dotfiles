@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import os.path
 from datetime import datetime
@@ -17,3 +17,5 @@ if os.path.isfile(file_name):
 with open(file_name, 'w') as f:
     title = '# ' + ' '.join(chunks) + '\n'
     f.write(title)
+
+print(file_name)

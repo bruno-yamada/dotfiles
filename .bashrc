@@ -173,3 +173,9 @@ export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -f -g ""'
 # replace default Ctrl-T command from fzf keybindings (faster)
 export FZF_CTRL_T_COMMAND=$FZF_DEFAULT_COMMAND
 
+which vim &>/dev/null && alias vi=vim
+type gh &>/dev/null && . <(gh completion -s bash)
+type kubectl &>/dev/null && . <(kubectl completion bash)
+type yq &>/dev/null && . <(yq shell-completion bash)
+type helm &>/dev/null && . <(helm completion bash)
+
