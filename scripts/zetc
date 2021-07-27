@@ -1,0 +1,26 @@
+#!/bin/bash
+
+CHANGED_FILES=$(git ls-files -o)
+
+CHANGED_COUNT=$(wc -l <<< $CHANGED_FILES)
+
+if [[ "$CHANGED_COUNT" -gt "1" ]]; then
+    echo "More than 1 zet is changed|untracked, do a manual commit instead"
+	exit 0;
+fi
+
+TITLE=$(cat $CHANGED_FILES | grep "#" | head -n 1 | sed -e "s/#\s*//g")
+
+if [ -z "$TITLE" ]; then
+    echo -e "# Missing zet title at:\n$CHANGED_FILES"
+	exit 0;
+elif [[ "${#TITLE}" -gt "50" ]]; then
+    TITLE=${TITLE:0:48}..
+	echo $TITLE
+fi
+
+echo -e "# Commiting $CHANGED_FILES with msg:\n$TITLE"
+
+git add $CHANGED_FILES
+git commit -m "$TITLE"
+git push

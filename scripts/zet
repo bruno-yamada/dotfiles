@@ -1,0 +1,21 @@
+#!/bin/bash
+
+NOW=$(date +%Y%m%d%H%M%SZ)
+FOLDER=${NOW:0:6}/$NOW
+
+[ ! -d "$FOLDER" ] && mkdir -p $FOLDER
+
+ZET=$FOLDER/README.md
+
+echo "# 
+
+> tags: 
+
+> uid: $NOW
+
+> links: 
+" > $ZET
+
+echo $ZET
+
+vim $ZET
