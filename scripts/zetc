@@ -5,6 +5,8 @@ CHANGED_COUNT=$(wc -w <<< $CHANGED_FILES)
 
 if [[ "$CHANGED_COUNT" -gt "1" ]]; then
     echo "More than 1 zet is untracked, do a manual commit instead"
+    echo "# untracked:"
+    echo "$CHANGED_FILES"
     exit 0;
 elif [[ "$CHANGED_COUNT" -eq "1" ]]; then
     GOT_TITLE="true"
@@ -16,6 +18,8 @@ if [ -z "$GOT_TITLE" ]; then
   
   if [[ "$CHANGED_COUNT" -gt "1" ]]; then
       echo "More than 1 zet is modified, do a manual commit instead"
+      echo "# modified:"
+      echo "$CHANGED_FILES"
       exit 0;
   elif [[ "$CHANGED_COUNT" -eq "1" ]]; then
       GOT_TITLE="true"
