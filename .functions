@@ -55,6 +55,12 @@ y() {
 function _date() {
   echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
+function isosec() {
+  echo "$(date -u +%Y%m%d%H%M%S "$@")"
+}
+function isonan() {
+  echo "$(date -u +%Y%m%d%H%M%S%N "$@")"
+}
 export -f _date
 
 # Tmux requires tmux
