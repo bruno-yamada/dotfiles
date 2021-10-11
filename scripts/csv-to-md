@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+import csv
+import sys
+
+def csv_to_md(lines):
+    csv_dict = csv.DictReader(lines)
+    list_of_rows = [dict_row for dict_row in csv_dict]
+
+    headers = list(list_of_rows[0].keys())
+
+    md_string = " | "
+    for header in headers:
+        md_string += header+" |"
+
+    md_string += "\n |"
+    for i in range(len(headers)):
+        md_string += "--- | "
+
+    md_string += "\n"
+    for row in list_of_rows:
+        md_string += " | "
+        for header in headers:
+            md_string += row[header]+" | "
+        md_string += "\n"
+
+    print(md_string)
+
+if __name__ == '__main__':
+    lines = []
+    for line in sys.stdin:
+        lines.append(line)
+    csv_to_md(lines)
+
