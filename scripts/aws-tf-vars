@@ -1,0 +1,17 @@
+#!/bin/bash
+# Given an AWS_PROFILE, expose the values in the terraform format
+# eg. export AWS_PROFILE=my-profile-name
+
+if [[ -z "$AWS_PROFILE" ]]; then
+  echo "Missing AWS_PROFILE env";
+  exit 1
+else
+  AWS_ENVS=$(cat ~/.aws/credentials | sed -n "/\[$AWS_PROFILE\]/,/\n/p" | grep '^aws')
+  AWS_ENVS=$(echo $AWS_ENVS | sed 's/ = /=/g')
+  for aws_env in $AWS_ENVS; do
+    K=$(echo $aws_env | cut -d'=' -f1)
+    V=$(echo $aws_env | cut -d'=' -f2-)
+    echo "$K = \"$V\""
+  done
+fi
+
