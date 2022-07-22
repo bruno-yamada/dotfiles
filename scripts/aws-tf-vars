@@ -6,7 +6,7 @@ if [[ -z "$AWS_PROFILE" ]]; then
   echo "Missing AWS_PROFILE env";
   exit 1
 else
-  AWS_ENVS=$(cat ~/.aws/credentials | sed -n "/\[$AWS_PROFILE\]/,/\n/p" | grep '^aws')
+  AWS_ENVS=$(cat ~/.aws/credentials | sed -n "/\[$AWS_PROFILE\]/,/^$/p" | grep '^aws')
   AWS_ENVS=$(echo $AWS_ENVS | sed 's/ = /=/g')
   for aws_env in $AWS_ENVS; do
     K=$(echo $aws_env | cut -d'=' -f1)
