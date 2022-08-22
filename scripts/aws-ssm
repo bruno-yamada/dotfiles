@@ -1,0 +1,15 @@
+#!/bin/bash
+"""
+# Usage (can use wildcards):
+aws-ssm 'my-ec2-asg-*'
+"""
+
+AWS_EC2_FILTER="$@"
+
+aws ssm start-session \
+  --target $(
+    aws ec2 describe-instances \
+      --filters "Name=tag:Name,Values='$AWS_EC2_FILTER'" "Name=instance-state-name,Values=running" \
+        | jq -r ".Reservations[].Instances[].InstanceId" \
+        | head -n 1 \
+    )
