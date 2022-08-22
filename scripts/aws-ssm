@@ -1,8 +1,6 @@
 #!/bin/bash
-"""
 # Usage (can use wildcards):
-aws-ssm 'my-ec2-asg-*'
-"""
+# aws-ssm 'my-ec2-asg-*'
 
 AWS_EC2_FILTER="$@"
 
