@@ -2,20 +2,43 @@
 import sys
 import os.path
 from datetime import datetime
+import argparse
 
-chunks = sys.argv[1:]
+class MarkdownFileCreator:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(description='Create a new markdown file with a timestamped prefix.')
+        self.parser.add_argument('chunks', metavar='N', type=str, nargs='+', help='File name chunks to append')
+        self.parser.add_argument('--docusaurus', action='store_true', help='Create document in Docusaurus format')
+        self.args = self.parser.parse_args()
+        self.chunks = self.args.chunks
+        self.prefix = self.get_prefix()
+        self.file_name = '{}-{}.md'.format(self.prefix, '_'.join(self.chunks))
 
-prefix = datetime.now().strftime('%Y%m%d%H%M')
+    def get_prefix(self):
+        if self.args.docusaurus:
+            return datetime.now().strftime('%Y-%m-%d')
+        else:
+            return datetime.now().strftime('%Y%m%d%H%M')
 
-file_name = '{}-{}.md'.format(prefix, '_'.join(chunks))
+    def validate(self):
+        if not len(self.chunks):
+            raise RuntimeError('Missing file append info')
+        if os.path.isfile(self.file_name):
+            raise RuntimeError('File already exists: {}'.format(self.file_name))
 
-if not len(chunks):
-    raise RuntimeError('Missing file append info')
-if os.path.isfile(file_name):
-    raise RuntimeError('File already exists: {}'.format(file_name))
+    def create_file(self):
+        with open(self.file_name, 'w') as f:
+            if self.args.docusaurus:
+                title = '---\ntitle: ' + ' '.join(self.chunks) + '\n---\n# ' + ' '.join(self.chunks) + '\n'
+            else:
+                title = '# ' + ' '.join(self.chunks) + '\n'
+            f.write(title)
+        print(self.file_name)
 
-with open(file_name, 'w') as f:
-    title = '# ' + ' '.join(chunks) + '\n'
-    f.write(title)
+    def run(self):
+        self.validate()
+        self.create_file()
 
-print(file_name)
+if __name__ == '__main__':
+    creator = MarkdownFileCreator()
+    creator.run()
