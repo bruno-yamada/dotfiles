@@ -16,6 +16,7 @@ alias llg="ls -la | grep"
 alias Projects="cd ~/projects && ll"
 alias Notes="cd ~/projects/github.com/bruno-yamada/bruno-yamada && ll"
 alias NotesPrivate="cd ~/projects/github.com/bruno-yamada/private-notes && ll"
+alias Br='function _proj() { cd $HOME/projects/github.com/bruno-yamada/$1 && ls -la ; } ; _proj'
 
 # Add an "alert" alias for long running commands. Use like so:
 #   sleep 10; alert

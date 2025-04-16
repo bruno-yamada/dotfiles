@@ -1,0 +1,27 @@
+#!/bin/bash
+
+url="https://www.google.com/search?q="
+
+# Parse options
+while getopts "g" opt; do
+    case $opt in
+        g)
+            url="https://chat.openai.com/?q="
+            ;;
+        *)
+            echo "Usage: $0 [-g] [search terms]"
+            exit 1
+            ;;
+    esac
+done
+
+# Shift parsed options
+shift $((OPTIND - 1))
+
+# Append search terms to the URL
+for term in "$@"; do
+    url=$url"+"$term
+done
+
+# Open the URL in the default browser
+open -a "Google Chrome" "$url"
