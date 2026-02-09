@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# url-codec - URL encoder/decoder
+# Inspired by https://www.urlencoder.org/ and https://www.urldecoder.org/
+#
+
+usage() {
+    cat <<'EOF'
+url-codec - URL encoder/decoder
+
+Usage:
+    url-codec encode <string>    Encode a string
+    url-codec decode <string>    Decode a string
+    url-codec encode             Encode from stdin
+    url-codec decode             Decode from stdin
+    url-codec -h                 Show this help
+
+Examples:
+    url-codec encode "hello world"
+    url-codec decode "hello%20world"
+    echo "hello world" | url-codec encode
+    echo "hello%20world" | url-codec decode
+EOF
+}
+
+url_encode() {
+    local string="$1"
+    local length=${#string}
+    local encoded=""
+
+    for (( i = 0; i < length; i++ )); do
+        local c="${string:$i:1}"
+        case "$c" in
+            [a-zA-Z0-9.~_-])
+                encoded+="$c"
+                ;;
+            *)
+                encoded+=$(printf '%%%02X' "'$c")
+                ;;
+        esac
+    done
+
+    echo "$encoded"
+}
+
+url_decode() {
+    local input="$1"
+    # Replace + with space, then decode percent-encoded chars
+    printf '%b\n' "$(echo "$input" | sed 's/+/ /g; s/%\([0-9A-Fa-f][0-9A-Fa-f]\)/\\x\1/g')"
+}
+
+# --- main ---
+
+case "${1:-}" in
+    -h|--help)
+        usage
+        ;;
+    encode)
+        shift
+        if [ -t 0 ] && [ -z "$1" ]; then
+            echo "Error: provide a string or pipe input" >&2
+            exit 1
+        fi
+        if [ -n "$1" ]; then
+            url_encode "$*"
+        else
+            while IFS= read -r line; do
+                url_encode "$line"
+            done
+        fi
+        ;;
+    decode)
+        shift
+        if [ -t 0 ] && [ -z "$1" ]; then
+            echo "Error: provide a string or pipe input" >&2
+            exit 1
+        fi
+        if [ -n "$1" ]; then
+            url_decode "$*"
+        else
+            while IFS= read -r line; do
+                url_decode "$line"
+            done
+        fi
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
