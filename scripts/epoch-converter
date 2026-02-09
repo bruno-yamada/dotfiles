@@ -1,0 +1,177 @@
+#!/bin/bash
+#
+# epoch-converter - Unix timestamp converter
+# Inspired by https://www.epochconverter.com/
+#
+
+usage() {
+    cat <<'EOF'
+epoch-converter - Unix timestamp converter
+Inspired by https://www.epochconverter.com/
+
+Usage:
+    epoch                    Show current epoch time
+    epoch <timestamp>        Convert epoch to human-readable date
+    epoch -r <date string>   Convert human-readable date to epoch
+    epoch -d <seconds>       Convert seconds to days, hours, minutes
+    epoch -h                 Show this help
+
+Examples:
+    epoch                          # 1707500000
+    epoch 1707500000               # Fri Feb  9 ...
+    epoch 1707500000000            # (auto-detects milliseconds)
+    epoch -r "2024-02-09 15:30:00" # 1707500000
+    epoch -r "Feb 9, 2024"         # 1707436800
+    epoch -d 90061                 # 1 day, 1 hour, 1 minute, 1 second
+
+Supports timestamps in seconds (10-digit), milliseconds (13-digit),
+microseconds (16-digit), and nanoseconds (19-digit).
+EOF
+}
+
+current_epoch() {
+    now=$(date +%s)
+    echo "$now"
+    echo ""
+    date -r "$now"
+    echo ""
+    echo "  ms: ${now}000"
+    echo "  μs: ${now}000000"
+    echo "  ns: ${now}000000000"
+}
+
+epoch_to_date() {
+    local input="$1"
+    local len=${#input}
+    local epoch label
+
+    if [ "$len" -le 10 ]; then
+        epoch="$input"
+        label="seconds"
+    elif [ "$len" -le 13 ]; then
+        epoch=$(( input / 1000 ))
+        label="milliseconds"
+    elif [ "$len" -le 16 ]; then
+        epoch=$(( input / 1000000 ))
+        label="microseconds"
+    else
+        epoch=$(( input / 1000000000 ))
+        label="nanoseconds"
+    fi
+
+    echo "Detected: $label"
+    echo ""
+    echo "  UTC:   $(TZ=UTC date -r "$epoch")"
+    echo "  Local: $(date -r "$epoch")"
+    echo ""
+    echo "  Relative: $(seconds_ago "$epoch")"
+}
+
+seconds_ago() {
+    local epoch="$1"
+    local now diff
+    now=$(date +%s)
+    diff=$(( now - epoch ))
+    if [ "$diff" -ge 0 ]; then
+        echo "$(format_duration $diff) ago"
+    else
+        diff=$(( -diff ))
+        echo "in $(format_duration $diff)"
+    fi
+}
+
+format_duration() {
+    local total="$1"
+    local days=$(( total / 86400 ))
+    local hours=$(( (total % 86400) / 3600 ))
+    local minutes=$(( (total % 3600) / 60 ))
+    local seconds=$(( total % 60 ))
+
+    local parts=()
+    [ "$days" -gt 0 ]    && parts+=("$days day$([ $days -ne 1 ] && echo s)")
+    [ "$hours" -gt 0 ]   && parts+=("$hours hour$([ $hours -ne 1 ] && echo s)")
+    [ "$minutes" -gt 0 ] && parts+=("$minutes minute$([ $minutes -ne 1 ] && echo s)")
+    [ "$seconds" -gt 0 ] && parts+=("$seconds second$([ $seconds -ne 1 ] && echo s)")
+
+    if [ ${#parts[@]} -eq 0 ]; then
+        echo "0 seconds"
+    else
+        local result=""
+        for i in "${!parts[@]}"; do
+            [ "$i" -gt 0 ] && result+=", "
+            result+="${parts[$i]}"
+        done
+        echo "$result"
+    fi
+}
+
+date_to_epoch() {
+    local input="$*"
+    local epoch
+
+    # Try common formats with date -j -f on macOS
+    for fmt in \
+        "%Y-%m-%d %H:%M:%S" \
+        "%Y-%m-%dT%H:%M:%S" \
+        "%Y-%m-%d" \
+        "%b %d, %Y %H:%M:%S" \
+        "%b %d, %Y" \
+        "%d %b %Y %H:%M:%S" \
+        "%d %b %Y" \
+        "%m/%d/%Y %H:%M:%S" \
+        "%m/%d/%Y" \
+        "%Y/%m/%d %H:%M:%S" \
+        "%Y/%m/%d"; do
+        epoch=$(date -j -f "$fmt" "$input" +%s 2>/dev/null) && break
+    done
+
+    if [ -z "$epoch" ]; then
+        echo "Error: Could not parse date '$input'" >&2
+        echo "Try formats like: 2024-02-09 15:30:00, Feb 9, 2024, 02/09/2024" >&2
+        exit 1
+    fi
+
+    echo "$epoch"
+    echo ""
+    echo "  UTC:   $(TZ=UTC date -r "$epoch")"
+    echo "  Local: $(date -r "$epoch")"
+    echo ""
+    echo "  ms: ${epoch}000"
+    echo "  μs: ${epoch}000000"
+    echo "  ns: ${epoch}000000000"
+}
+
+# --- main ---
+
+case "${1:-}" in
+    -h|--help)
+        usage
+        ;;
+    -d)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: -d requires a number of seconds" >&2
+            exit 1
+        fi
+        format_duration "$1"
+        ;;
+    -r)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: -r requires a date string" >&2
+            exit 1
+        fi
+        date_to_epoch "$@"
+        ;;
+    "")
+        current_epoch
+        ;;
+    *)
+        # If input is all digits, treat as epoch; otherwise try as date
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+            epoch_to_date "$1"
+        else
+            date_to_epoch "$@"
+        fi
+        ;;
+esac

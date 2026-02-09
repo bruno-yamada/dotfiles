@@ -24,4 +24,5 @@ for term in "$@"; do
 done
 
 # Open the URL in the default browser
+echo "Opening $url"
 open -a "Google Chrome" "$url"
