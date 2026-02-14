@@ -1,33 +1,9 @@
-# Docker
+# Functions - sourced by both .bashrc and .zshrc
+# Keep this file as the single source of truth for all shell functions.
 
-docker-logs() {
-    docker logs -f --tail=200 $@
-}
-
-docker-it() {
-    docker exec -it -e COLUMNS="`tput cols`" $@
-}
-
-# Misc only on ubuntu desktop
-#open() {
-#    gio open $@
-#}
-
-openssl_describe() {
-    openssl x509 -in $1 -text
-}
-
-tmpfile() {
-  N=/tmp/tmpfile-$(openssl rand -hex 4)
-  touch $N
-  echo $N
-}
-
-tmpdir() {
-  N=/tmp/tmpdir-$(openssl rand -hex 4)
-  mkdir $N
-  echo $N
-}
+################################################################################
+# Git
+################################################################################
 
 gc() {
   msg="$@"
@@ -38,20 +14,17 @@ gc() {
   fi
 }
 
-# Tmux requires tmux
-lasturls() { # TODO move to dotfiles scripts
-  tmux capture-pane -p | grep -Eo 'https?://[^ >]+'
-}
-lasturl() { # TODO move to dotfiles scripts
-  lasturls | perl -e 'print reverse <>' | head -n 1
-}
-openlast() {
-  url=$(lasturl)
-  if [ -z "${url}" ]; then
-    echo "no url found"
+gc-skip() {
+  msg="$@"
+  if [ -z "$msg" ]; then
+    git commit -v
   else
-    open $url
+    git commit -n -m "$msg"
   fi
+}
+
+git-changed() {
+  git status --short --untracked-files=no | cut -c 4-
 }
 
 cd-git-root() {
@@ -74,3 +47,112 @@ cd-git-root() {
   return 0
 }
 
+################################################################################
+# Tmux (requires tmux)
+################################################################################
+
+lasturls() {
+  tmux capture-pane -p | grep -Eo 'https?://[^ >]+'
+}
+
+lasturl() {
+  lasturls | perl -e 'print reverse <>' | head -n 1
+}
+
+openlast() {
+  url=$(lasturl)
+  if [ -z "${url}" ]; then
+    echo "no url found"
+  else
+    open "$url"
+  fi
+}
+
+################################################################################
+# OpenSSL
+################################################################################
+
+openssl_describe() {
+    openssl x509 -in "$1" -text
+}
+
+################################################################################
+# Temp files/dirs
+################################################################################
+
+tmpfile() {
+  N=/tmp/tmpfile-$(openssl rand -hex 4)
+  touch "$N"
+  echo "$N"
+}
+
+tmpdir() {
+  N=/tmp/tmpdir-$(openssl rand -hex 4)
+  mkdir "$N"
+  echo "$N"
+}
+
+################################################################################
+# Date/Time helpers
+################################################################################
+
+_date() {
+  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+
+################################################################################
+# Kubernetes
+################################################################################
+
+kpod() {
+  kubectl get pod | grep -v -i terminating | grep -m 1 "$1" | awk '{print $1;}'
+}
+
+kget-all-ns() {
+  kubectl api-resources --verbs=list --namespaced -o name \
+    | xargs -n 1 kubectl get --show-kind --ignore-not-found -n "$(kubens -c)"
+}
+
+kexec() {
+  echo "kpod $1"
+  POD=$(kpod "$1")
+  echo "$POD"
+  kubectl exec -it "$POD" -- "${@:2}"
+}
+
+klogs() {
+  kubectl logs "$(kpod "$1")" "${@:2}"
+}
+
+klogsf() {
+  kubectl logs -f "$(kpod "$1")" "${@:2}"
+}
+
+################################################################################
+# AWS ECS
+################################################################################
+
+ecs-exec() {
+  # call with: ecs-exec <ecs-cluster-name> <ecs-service-name> <container-name (defaults to 'main')>
+  ECS_CLUSTER=$1
+  ECS_SERVICE_NAME=$2
+  ECS_CONTAINER="${3:-main}"
+  ECS_TASK_ID=$(aws ecs list-tasks --cluster "$ECS_CLUSTER" --service-name "$ECS_SERVICE_NAME" \
+    | jq -r '.taskArns[0]' | rev | cut -d'/' -f 1 | rev)
+
+  echo "aws ecs execute-command --cluster $ECS_CLUSTER --task $ECS_TASK_ID --container $ECS_CONTAINER --interactive --command \"/bin/sh\""
+  aws ecs execute-command --cluster "$ECS_CLUSTER" --task "$ECS_TASK_ID" --container "$ECS_CONTAINER" --interactive --command "/bin/sh"
+}
+
+################################################################################
+# Web search (terminal)
+################################################################################
+
+yy() {
+  url="https://duckduckgo.com/?q="
+  for term in "$@"; do
+    url=$url"+"$term
+  done
+  echo "$url"
+  lynx -cookies -accept_all_cookies -vikeys "$url"
+}
