@@ -7,10 +7,11 @@ set -euo pipefail
 # This script:
 #   1. Installs Homebrew (if missing)
 #   2. Installs packages from Brewfile
-#   3. Installs oh-my-zsh + plugins + theme
-#   4. Installs Vundle (vim plugin manager)
-#   5. Creates symlinks for dotfiles
-#   6. Creates common directory structure
+#   3. Installs fzf shell integration (key bindings + completion)
+#   4. Installs oh-my-zsh + plugins + theme
+#   5. Installs Vundle (vim plugin manager)
+#   6. Creates symlinks for dotfiles
+#   7. Creates common directory structure
 #
 # Safe to run multiple times - existing files are backed up, not overwritten.
 
@@ -88,7 +89,22 @@ install_brew_packages() {
 }
 
 ################################################################################
-# 3. Oh-My-Zsh + plugins + theme
+# 3. FZF shell integration
+################################################################################
+
+install_fzf_integration() {
+  local fzf_install="$(brew --prefix)/opt/fzf/install"
+  if [ -f "$fzf_install" ]; then
+    info "Installing fzf shell integration..."
+    "$fzf_install" --key-bindings --completion --no-update-rc --no-bash --no-fish
+    ok "fzf shell integration installed"
+  else
+    warn "fzf not found, skipping shell integration"
+  fi
+}
+
+################################################################################
+# 4. Oh-My-Zsh + plugins + theme
 ################################################################################
 
 clone_or_pull() {
@@ -140,7 +156,7 @@ install_oh_my_zsh() {
 }
 
 ################################################################################
-# 4. Vundle (vim plugin manager)
+# 5. Vundle (vim plugin manager)
 ################################################################################
 
 install_vundle() {
@@ -155,7 +171,7 @@ install_vundle() {
 }
 
 ################################################################################
-# 5. Symlinks
+# 6. Symlinks
 ################################################################################
 
 create_symlinks() {
@@ -166,7 +182,7 @@ create_symlinks() {
 }
 
 ################################################################################
-# 6. Directory structure
+# 7. Directory structure
 ################################################################################
 
 create_directories() {
@@ -184,7 +200,7 @@ create_directories() {
 }
 
 ################################################################################
-# 7. Reminders
+# 8. Reminders
 ################################################################################
 
 print_post_install() {
@@ -224,6 +240,7 @@ main() {
 
   install_homebrew
   install_brew_packages
+  install_fzf_integration
   install_oh_my_zsh
   install_vundle
   create_symlinks
