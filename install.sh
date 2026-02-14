@@ -81,7 +81,7 @@ install_homebrew() {
 install_brew_packages() {
   if [ -f "$DOTFILES_DIR/Brewfile" ]; then
     info "Installing Homebrew packages from Brewfile..."
-    brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
+    brew bundle --file="$DOTFILES_DIR/Brewfile" # --no-lock
     ok "Brew packages installed"
   else
     warn "No Brewfile found, skipping"
