@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -u
+
+ROOT_DIR="${1:-.}"
+
+if [[ ! -d "$ROOT_DIR" ]]; then
+  echo "Error: '$ROOT_DIR' is not a directory."
+  exit 1
+fi
+
+echo "Scanning repositories in: $ROOT_DIR"
+echo
+
+updated=0
+skipped=0
+failed=0
+
+for dir in "$ROOT_DIR"/*; do
+  [[ -d "$dir" ]] || continue
+
+  if ! git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "SKIP  $(basename "$dir"): not a git repository"
+    ((skipped++))
+    continue
+  fi
+
+  repo_name="$(basename "$dir")"
+  current_branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
+
+  echo "PULL  $repo_name (branch: $current_branch)"
+
+  if git -C "$dir" pull --ff-only; then
+    ((updated++))
+  else
+    echo "FAIL  $repo_name"
+    ((failed++))
+  fi
+
+  echo
+done
+
+echo "Done."
+echo "Updated: $updated"
+echo "Skipped: $skipped"
+echo "Failed:  $failed"
+
+if [[ "$failed" -gt 0 ]]; then
+  exit 2
+fi
