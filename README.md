@@ -30,6 +30,7 @@ cp .private.example .private
 | `.bashrc` | Bash config (legacy, still functional) |
 | `.aliases` | All shell aliases (git, docker, k8s, terraform, navigation) |
 | `.functions` | All shell functions (git, k8s, vault, AWS, tmux, etc) |
+| `.tmux.conf` | tmux config (keybindings, panes, plugins, theme, clipboard) |
 | `.private` | **Gitignored.** Your secrets, tokens, API keys |
 | `.private.example` | Template showing which env vars to set |
 
