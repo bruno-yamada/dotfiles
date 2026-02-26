@@ -75,7 +75,8 @@ The installer (`install.sh`) does the following:
 3. Installs **oh-my-zsh** + plugins (zsh-autosuggestions, zsh-syntax-highlighting) + theme (powerlevel10k)
 4. Installs **Vundle** and vim plugins
 5. Creates **symlinks** from `$HOME` to the dotfiles in this repo
-6. Creates common **directories** (`~/projects/`, `~/bin/`, `~/.kube/`, etc)
+6. Installs **TPM** (tmux plugin manager) and tmux plugins from `.tmux.conf`
+7. Creates common **directories** (`~/projects/`, `~/bin/`, `~/.kube/`, etc)
 
 Existing files in `$HOME` are backed up before being replaced.
 

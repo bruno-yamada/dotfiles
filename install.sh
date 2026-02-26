@@ -11,7 +11,8 @@ set -euo pipefail
 #   4. Installs oh-my-zsh + plugins + theme
 #   5. Installs Vundle (vim plugin manager)
 #   6. Creates symlinks for dotfiles
-#   7. Creates common directory structure
+#   7. Installs tmux TPM + plugins
+#   8. Creates common directory structure
 #
 # Safe to run multiple times - existing files are backed up, not overwritten.
 
@@ -183,7 +184,33 @@ create_symlinks() {
 }
 
 ################################################################################
-# 7. Directory structure
+# 7. Tmux TPM + plugins
+################################################################################
+
+install_tmux_plugins() {
+  if ! command -v tmux &>/dev/null; then
+    warn "tmux not found, skipping TPM/plugin install"
+    return
+  fi
+
+  clone_or_pull \
+    "https://github.com/tmux-plugins/tpm" \
+    "$HOME/.tmux/plugins/tpm" \
+    "tmux plugin manager (TPM)"
+
+  if [ -f "$HOME/.tmux/plugins/tpm/bin/install_plugins" ]; then
+    info "Installing/updating tmux plugins..."
+    tmux start-server >/dev/null 2>&1 || true
+    tmux source-file "$HOME/.tmux.conf" >/dev/null 2>&1 || warn "Could not source ~/.tmux.conf in tmux"
+    "$HOME/.tmux/plugins/tpm/bin/install_plugins" >/dev/null 2>&1 || warn "Could not install tmux plugins (run Prefix + I inside tmux)"
+    ok "tmux plugins up to date"
+  else
+    warn "TPM install script not found, skipping tmux plugin install"
+  fi
+}
+
+################################################################################
+# 8. Directory structure
 ################################################################################
 
 create_directories() {
@@ -201,7 +228,7 @@ create_directories() {
 }
 
 ################################################################################
-# 8. Reminders
+# 9. Reminders
 ################################################################################
 
 print_post_install() {
@@ -245,6 +272,7 @@ main() {
   install_oh_my_zsh
   install_vundle
   create_symlinks
+  install_tmux_plugins
   create_directories
   print_post_install
 }
