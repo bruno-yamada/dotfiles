@@ -9,6 +9,7 @@
 brew "git"
 brew "vim"
 brew "tmux"
+brew "reattach-to-user-namespace"
 brew "fzf"
 brew "the_silver_searcher"  # ag
 brew "ripgrep"              # rg
