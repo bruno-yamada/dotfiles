@@ -10,6 +10,7 @@ brew "git"
 brew "vim"
 brew "tmux"
 brew "reattach-to-user-namespace"
+brew "telnet"
 brew "fzf"
 brew "the_silver_searcher"  # ag
 brew "ripgrep"              # rg
@@ -23,6 +24,7 @@ brew "htop"
 brew "icdiff"               # improved diff
 brew "direnv"               # per-directory env vars
 brew "pre-commit"
+brew "lazygit"
 
 ################################################################################
 # Version managers
@@ -58,4 +60,3 @@ brew "go"
 # powerlevel10k       -> git clone into $ZSH_CUSTOM/themes/
 # zsh-autosuggestions -> git clone into $ZSH_CUSTOM/plugins/
 # zsh-syntax-highlighting -> git clone into $ZSH_CUSTOM/plugins/
-
