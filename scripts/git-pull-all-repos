@@ -2,6 +2,13 @@
 
 set -u
 
+if [[ -t 1 ]]; then
+  GREEN='\033[0;32m' YELLOW='\033[0;33m' RED='\033[0;31m'
+  CYAN='\033[0;36m' BOLD='\033[1m' RESET='\033[0m'
+else
+  GREEN='' YELLOW='' RED='' CYAN='' BOLD='' RESET=''
+fi
+
 ROOT_DIR="${1:-.}"
 
 if [[ ! -d "$ROOT_DIR" ]]; then
@@ -9,7 +16,7 @@ if [[ ! -d "$ROOT_DIR" ]]; then
   exit 1
 fi
 
-echo "Scanning repositories in: $ROOT_DIR"
+echo -e "${BOLD}${CYAN}Scanning repositories in: $ROOT_DIR${RESET}"
 echo
 
 updated=0
@@ -20,7 +27,7 @@ for dir in "$ROOT_DIR"/*; do
   [[ -d "$dir" ]] || continue
 
   if ! git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "SKIP  $(basename "$dir"): not a git repository"
+    echo -e "${YELLOW}SKIP${RESET}  ${BOLD}$(basename "$dir")${RESET}: not a git repository"
     ((skipped++))
     continue
   fi
@@ -28,22 +35,22 @@ for dir in "$ROOT_DIR"/*; do
   repo_name="$(basename "$dir")"
   current_branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
 
-  echo "PULL  $repo_name (branch: $current_branch)"
+  echo -e "${GREEN}PULL${RESET}  ${BOLD}$repo_name${RESET} (branch: ${CYAN}$current_branch${RESET})"
 
   if git -C "$dir" pull --ff-only; then
     ((updated++))
   else
-    echo "FAIL  $repo_name"
+    echo -e "${RED}FAIL${RESET}  ${BOLD}$repo_name${RESET}"
     ((failed++))
   fi
 
   echo
 done
 
-echo "Done."
-echo "Updated: $updated"
-echo "Skipped: $skipped"
-echo "Failed:  $failed"
+echo -e "${BOLD}Done.${RESET}"
+echo -e "  ${GREEN}Updated:${RESET} $updated"
+echo -e "  ${YELLOW}Skipped:${RESET} $skipped"
+echo -e "  ${RED}Failed:${RESET}  $failed"
 
 if [[ "$failed" -gt 0 ]]; then
   exit 2
