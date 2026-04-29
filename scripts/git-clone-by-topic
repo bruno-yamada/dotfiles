@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+set -u
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [OPTIONS] <topic>
+
+Clone all GitHub repositories matching a given topic into the current directory.
+Existing repos are skipped. Warns if a local repo is on a different branch than
+the remote default.
+
+Arguments:
+  topic               GitHub topic to search for (required)
+
+Options:
+  --org <name>        GitHub org to search (can be specified multiple times)
+  --dir <path>        Target directory for clones (default: current directory)
+  -h, --help          Show this help message
+
+Examples:
+  $(basename "$0") --org my-org --org other-org my-topic
+  $(basename "$0") --org my-org --dir ~/repos my-topic
+EOF
+}
+
+if [[ -t 1 ]]; then
+  GREEN='\033[0;32m' YELLOW='\033[0;33m' RED='\033[0;31m'
+  CYAN='\033[0;36m' BOLD='\033[1m' RESET='\033[0m'
+else
+  GREEN='' YELLOW='' RED='' CYAN='' BOLD='' RESET=''
+fi
+
+orgs=()
+target_dir="."
+topic=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --org)
+      [[ $# -lt 2 ]] && { echo "Error: --org requires a value"; exit 1; }
+      orgs+=("$2")
+      shift 2
+      ;;
+    --dir)
+      [[ $# -lt 2 ]] && { echo "Error: --dir requires a value"; exit 1; }
+      target_dir="$2"
+      shift 2
+      ;;
+    -*)
+      echo "Error: unknown option '$1'"
+      usage
+      exit 1
+      ;;
+    *)
+      topic="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$topic" ]]; then
+  echo "Error: topic is required."
+  echo
+  usage
+  exit 1
+fi
+
+if [[ ${#orgs[@]} -eq 0 ]]; then
+  echo "Error: at least one --org is required."
+  echo
+  usage
+  exit 1
+fi
+
+if [[ ! -d "$target_dir" ]]; then
+  echo "Error: '$target_dir' is not a directory."
+  exit 1
+fi
+
+target_dir="$(cd "$target_dir" && pwd)"
+
+echo -e "${BOLD}${CYAN}Cloning repos with topic '$topic' into: $target_dir${RESET}"
+echo
+
+cloned=0
+skipped=0
+warned=0
+
+for org in "${orgs[@]}"; do
+  echo -e "${BOLD}${CYAN}Searching $org for topic '$topic'...${RESET}"
+  echo
+
+  page=1
+  while true; do
+    repos=$(gh api "search/repositories?q=topic:${topic}+org:${org}&per_page=100&page=${page}" \
+      --jq '.items[] | "\(.full_name)\t\(.default_branch)"' 2>/dev/null) || break
+
+    [[ -z "$repos" ]] && break
+
+    while IFS=$'\t' read -r full_name default_branch; do
+      repo_name="${full_name#*/}"
+      dest="${target_dir}/${repo_name}"
+
+      if [[ -d "$dest" ]]; then
+        local_branch="$(git -C "$dest" symbolic-ref --short HEAD 2>/dev/null || echo "DETACHED")"
+        if [[ "$local_branch" != "$default_branch" ]]; then
+          echo -e "${RED}WARN${RESET}  ${BOLD}$full_name${RESET}: local branch ${RED}'$local_branch'${RESET} differs from remote default ${GREEN}'$default_branch'${RESET}"
+          ((warned++))
+        else
+          echo -e "${YELLOW}SKIP${RESET}  ${BOLD}$full_name${RESET}: already exists (branch: ${GREEN}$default_branch${RESET})"
+          ((skipped++))
+        fi
+      else
+        echo -e "${GREEN}CLONE${RESET} ${BOLD}$full_name${RESET} -> $dest"
+        gh repo clone "$full_name" "$dest"
+        ((cloned++))
+        echo
+      fi
+    done <<< "$repos"
+
+    page=$((page + 1))
+  done
+done
+
+echo
+echo -e "${BOLD}Done.${RESET}"
+echo -e "  ${GREEN}Cloned:${RESET}  $cloned"
+echo -e "  ${YELLOW}Skipped:${RESET} $skipped"
+echo -e "  ${RED}Warned:${RESET}  $warned"
