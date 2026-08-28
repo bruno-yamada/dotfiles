@@ -156,3 +156,24 @@ yy() {
   echo "$url"
   lynx -cookies -accept_all_cookies -vikeys "$url"
 }
+
+caff_for() {
+  local hours=$1
+  if [[ -z "$hours" ]]; then
+    echo "Usage: caff_until <number_of_hours>"
+    return 1
+  fi
+
+  # Calculate total seconds
+  local seconds=$(( hours * 3600 ))
+
+  # Calculate the exact end time with the full date (works on macOS)
+  local end_time=$(date -v+"${hours}H" +"%A, %B %d, %Y at %I:%M %p")
+
+  echo "☕ System will stay awake for $hours hour(s)."
+  echo "⏰ Caffeinate will end on: $end_time"
+  echo "Press Ctrl+C to cancel early."
+
+  caffeinate -midus -t $seconds
+}
+
