@@ -57,7 +57,6 @@ brew "kubectl"
 brew "helm"
 brew "kustomize"
 brew "kubectx"              # kubens + kubectx
-brew "argocd"
 brew "k9s"
 brew "krew"
 brew "kubectl-argo-rollouts"
