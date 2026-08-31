@@ -25,6 +25,7 @@ brew "yq"                   # YAML processor
 brew "tree"
 brew "wget"
 brew "curl"
+brew "rsync"
 brew "htop"
 brew "btop"                 # better htop
 brew "watch"
