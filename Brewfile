@@ -59,7 +59,6 @@ brew "kustomize"
 brew "kubectx"              # kubens + kubectx
 brew "k9s"
 brew "krew"
-brew "kubectl-argo-rollouts"
 brew "kubent"
 brew "velero"
 brew "jfrog-cli"
