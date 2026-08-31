@@ -4,6 +4,11 @@
 # To dump your current packages: brew bundle dump --file=Brewfile.local
 
 ################################################################################
+# Taps
+################################################################################
+tap "starkandwayne/cf"
+
+################################################################################
 # CLI essentials
 ################################################################################
 brew "git"
@@ -21,10 +26,20 @@ brew "tree"
 brew "wget"
 brew "curl"
 brew "htop"
+brew "btop"                 # better htop
+brew "watch"
+brew "gnu-sed"
 brew "icdiff"               # improved diff
 brew "direnv"               # per-directory env vars
 brew "pre-commit"
 brew "lazygit"
+
+################################################################################
+# Libraries / Dependencies
+################################################################################
+brew "ca-certificates"
+brew "zlib"
+brew "wxwidgets@3.2"
 
 ################################################################################
 # Version managers
@@ -42,6 +57,19 @@ brew "kubectl"
 brew "helm"
 brew "kustomize"
 brew "kubectx"              # kubens + kubectx
+brew "argocd"
+brew "k9s"
+brew "krew"
+brew "kubectl-argo-rollouts"
+brew "kubent"
+brew "velero"
+brew "jfrog-cli"
+
+################################################################################
+# Security
+################################################################################
+brew "sslscan"
+brew "starkandwayne/cf/safe" # Vault CLI wrapper
 
 ################################################################################
 # GitHub
@@ -52,6 +80,11 @@ brew "gh"
 # Languages / Runtimes
 ################################################################################
 brew "go"
+
+################################################################################
+# macOS Apps
+################################################################################
+cask "stats"                # menu bar system monitor
 
 ################################################################################
 # Oh-My-Zsh + Plugins (installed via install.sh, listed here for reference)
