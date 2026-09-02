@@ -58,8 +58,10 @@ alias t="terraform"
 alias ll="ls -lahF"
 alias llg="ls -lah | grep"
 alias cppwd='echo $PWD | pbcopy'
-alias ag="ag --hidden"
 alias s="sgpt"
+
+# alias ag="ag --hidden" # stopped using silver-searcher, in favor of ripgrep (rg)
+alias rg='rg --colors "match:bg:0xe8,0x97,0x46" --colors "match:fg:black" --colors "path:fg:cyan" --colors "path:style:bold"'
 
 # Search (ack respecting .gitignore)
 alias gack="git ls-files -oc --exclude-standard | ack -x"

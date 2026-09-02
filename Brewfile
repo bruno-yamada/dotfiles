@@ -92,3 +92,5 @@ cask "stats"                # menu bar system monitor
 # powerlevel10k       -> git clone into $ZSH_CUSTOM/themes/
 # zsh-autosuggestions -> git clone into $ZSH_CUSTOM/plugins/
 # zsh-syntax-highlighting -> git clone into $ZSH_CUSTOM/plugins/
+
+
